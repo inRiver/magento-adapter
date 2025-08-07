@@ -1,3 +1,6 @@
+##Version 24.8.4
+- Adding PHP 8.4 support for Magento 2.4.8
+
 ##Version 24.8.3
 - Adding PHP 8.3 support for Magento 2.4.7
 - Fix GitHub-32464

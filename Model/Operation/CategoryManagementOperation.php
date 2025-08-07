@@ -80,7 +80,7 @@ class CategoryManagementOperation implements CategoryManagementInterface
         StoreManagerInterface $storeManager,
         ResourceConnection $resourceConnection,
         ChildrenCategoriesProvider $childrenCategoriesProvider,
-        MetadataPool $metadataPool = null
+        ?MetadataPool $metadataPool = null
     ) {
         $this->categoryCollectionFactory = $categoryCollectionFactory;
         $this->categoryRepository = $categoryRepository;

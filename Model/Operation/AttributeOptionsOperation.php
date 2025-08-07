@@ -292,8 +292,8 @@ class AttributeOptionsOperation implements AttributeOptionsInterface
     protected function getStoreLabels(
         OptionInterface $newOption,
         bool $isSwatch = false,
-        AttributeOption $currentOption = null,
-        AttributeInterface $attribute = null
+        ?AttributeOption $currentOption = null,
+        ?AttributeInterface $attribute = null
     ): array {
         $originalStoreId = $attribute !== null ? $attribute->getStoreId() : 0;
         $labels = [];
