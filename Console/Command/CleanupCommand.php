@@ -23,7 +23,7 @@ class CleanupCommand extends Command
      * @param Cleanup $cleanup
      * @param string|null $name
      */
-    public function __construct(Cleanup $cleanup, string $name = null)
+    public function __construct(Cleanup $cleanup, ?string $name = null)
     {
         parent::__construct($name);
         $this->cleanup = $cleanup;
