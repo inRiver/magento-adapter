@@ -41,7 +41,7 @@ class InriverProductImportPluginTest extends TestCase
     {
         $inriverProductImportPlugin = new InriverProductImportPlugin($this->importHelper);
         $this->importHelper
-            ->method('isNewSimpleProductRowWithNoPrice')->willReturn(false);
+            ->method('isNewProductRowWithNoPrice')->willReturn(false);
         $this->productImport
             ->method('isImportTypeDisable')->willReturn(true);
         $this->productImport
@@ -63,7 +63,7 @@ class InriverProductImportPluginTest extends TestCase
     {
         $inriverProductImportPlugin = new InriverProductImportPlugin($this->importHelper);
         $this->importHelper
-            ->method('isNewSimpleProductRowWithNoPrice')->willReturn(false);
+            ->method('isNewProductRowWithNoPrice')->willReturn(false);
         $this->productImport
             ->method('isImportTypeDisable')->willReturn(true);
         $this->productImport
@@ -85,7 +85,7 @@ class InriverProductImportPluginTest extends TestCase
     {
         $inriverProductImportPlugin = new InriverProductImportPlugin($this->importHelper);
         $this->importHelper
-            ->method('isNewSimpleProductRowWithNoPrice')->willReturn(false);
+            ->method('isNewProductRowWithNoPrice')->willReturn(false);
         $this->productImport
             ->method('isImportTypeDisable')->willReturn(false);
 
@@ -115,7 +115,7 @@ class InriverProductImportPluginTest extends TestCase
     {
         $inriverProductImportPlugin = new InriverProductImportPlugin($this->importHelper);
         $this->importHelper
-            ->method('isNewSimpleProductRowWithNoPrice')->willReturn(false);
+            ->method('isNewProductRowWithNoPrice')->willReturn(false);
         $this->productImport
             ->method('isImportTypeDisable')->willReturn(true);
 
@@ -145,7 +145,7 @@ class InriverProductImportPluginTest extends TestCase
     {
         $inriverProductImportPlugin = new InriverProductImportPlugin($this->importHelper);
         $this->importHelper
-            ->method('isNewSimpleProductRowWithNoPrice')->willReturn(true);
+            ->method('isNewProductRowWithNoPrice')->willReturn(true);
         $this->productImport
             ->method('isImportTypeDisable')->willReturn(false);
 
@@ -156,10 +156,8 @@ class InriverProductImportPluginTest extends TestCase
                 1
             );
             $rowData = $return[0];
-            $this->assertEquals(
-                2,
-                $rowData['status']
-            );
+            $expectedStatus = $rowData[MagentoProduct::COL_SKU] === self::NEW_SKU_WITH_STATUS ? 1 : 2;
+            $this->assertSame($expectedStatus, $rowData['status']);
         }
     }
 
@@ -208,7 +206,7 @@ class InriverProductImportPluginTest extends TestCase
         );
         $this->importHelper = $this->createPartialMock(
             Import::class,
-            ['isNewSimpleProductRowWithNoPrice', 'isImportTypeDisable', 'decodeImportAttributeValue']
+            ['isNewProductRowWithNoPrice', 'isImportTypeDisable', 'decodeImportAttributeValue']
         );
     }
 

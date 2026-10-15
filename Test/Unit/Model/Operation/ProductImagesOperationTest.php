@@ -36,6 +36,7 @@ use Magento\Framework\Filesystem;
 use Magento\Framework\Filesystem\Directory\ReadInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 use function __;
@@ -138,9 +139,18 @@ class ProductImagesOperationTest extends TestCase
         $subject->post($productImages);
     }
 
-    public function testUpdateExistingEntriesWithoutExistingStoreConfiguration(): void
+    #[DataProvider('imageRoleStoreScopesProvider')]
+    public function testUpdateExistingEntriesWithoutExistingStoreConfiguration(
+        bool $singleStore,
+        int $roleStoreId,
+        array $requiredStoreIds
+    ): void
     {
         $subject = $this->getSubject();
+        $this->storeManager->expects($this->once())->method('hasSingleStore')->willReturn($singleStore);
+        $product = $this->createMock(ProductInterface::class);
+        $removedStores = $singleStore ? [] : [10, 11];
+        $value = '/i/n/test.jpg';
 
         $attribute = new Attributes();
         $attribute->setPosition(1);
@@ -170,16 +180,19 @@ class ProductImagesOperationTest extends TestCase
             ->willReturn($inriverMediaGalleryData);
 
         $this->mediaGalleryManagement->expects($this->once())->method('getList')->willReturn([$entry]);
+        $this->mediaGalleryManagement->expects($this->once())->method('getMediaGalleryEntity')->willReturn($value);
         $this->mediaGalleryManagement->expects($this->never())->method('deleteGallery');
         $this->mediaGalleryManagement->expects($this->once())->method('insertGalleryValueInStore');
-        $this->mediaGalleryManagement->expects($this->once())->method('updateImageTypes');
-        $this->mediaGalleryManagement->expects($this->exactly(2))->method('deleteExistingTypesForStore');
-        $this->mediaGalleryManagement->expects($this->exactly(3))->method('deleteGalleryValueInStore');
+        $this->mediaGalleryManagement->expects($this->once())->method('updateImageTypes')
+            ->with(['a-role' => 0], $value, $product, $roleStoreId);
+        $this->mediaGalleryManagement->expects($this->exactly(count($removedStores)))->method('deleteExistingTypesForStore');
+        $this->mediaGalleryManagement->expects($this->exactly(count($removedStores) + 1))->method('deleteGalleryValueInStore');
 
         $this->mediaGalleryManagement
             ->expects($this->once())
             ->method('getExistingStoreEntries')
-            ->willReturn([10, 11]);
+            ->with($product, $requiredStoreIds, $entry)
+            ->willReturn($removedStores);
 
         $storeEntry = $this->createMock(ProductAttributeMediaGalleryEntryInterface::class);
         $storeEntry->method('getTypes')->willReturn([]);
@@ -194,11 +207,17 @@ class ProductImagesOperationTest extends TestCase
 
         $this->storeManager->method('getStore')->willReturn($store);
 
-        $this->productRepository->method('get')->willReturn(
-            $this->createMock(ProductInterface::class)
-        );
+        $this->productRepository->method('get')->willReturn($product);
 
         $subject->post($message);
+    }
+
+    public static function imageRoleStoreScopesProvider(): array
+    {
+        return [
+            'single-store roles use admin scope' => [true, 0, [1, 0]],
+            'multi-store roles use storefront scope' => [false, 1, [1]],
+        ];
     }
 
     public function testCreateNewMediaEntry(): void

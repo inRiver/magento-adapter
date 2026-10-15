@@ -55,7 +55,7 @@ class ImportDataPluginTest extends TestCase
     {
         $importDataPlugin = $this->getImportDataPlugin();
         $this->importHelper
-            ->method('isNewSimpleProductRowWithNoPrice')->willReturn(false);
+            ->method('isNewProductRowWithNoPrice')->willReturn(false);
         $this->importHelper
             ->method('isImportTypeDisable')->willReturn(false);
         $this->importHelper
@@ -82,7 +82,7 @@ class ImportDataPluginTest extends TestCase
     {
         $importDataPlugin = $this->getImportDataPlugin();
         $this->importHelper
-            ->method('isNewSimpleProductRowWithNoPrice')->willReturn(false);
+            ->method('isNewProductRowWithNoPrice')->willReturn(false);
         $this->importHelper
             ->method('isImportTypeDisable')->willReturn(false);
         $this->importHelper
@@ -109,7 +109,7 @@ class ImportDataPluginTest extends TestCase
     {
         $importDataPlugin = $this->getImportDataPlugin();
         $this->importHelper
-            ->method('isNewSimpleProductRowWithNoPrice')->willReturn(false);
+            ->method('isNewProductRowWithNoPrice')->willReturn(false);
         $this->importHelper
             ->method('isImportTypeDisable')->willReturn(false);
         $this->importHelper
@@ -136,17 +136,15 @@ class ImportDataPluginTest extends TestCase
     {
         $importDataPlugin = $this->getImportDataPlugin();
         $this->importHelper
-            ->method('isNewSimpleProductRowWithNoPrice')->willReturn(true);
+            ->method('isNewProductRowWithNoPrice')->willReturn(true);
         $this->importHelper
             ->method('isImportTypeDisable')->willReturn(false);
         $this->importHelper
             ->method('getUniqueProductUrl')->willReturn(self::RANDOM_URL);
         $rowsData = $importDataPlugin->afterGetNextUniqueBunch($this->dataSourceModel, $this->getRowsData(), null);
         foreach ($rowsData as $rowData) {
-            $this->assertEquals(
-                2,
-                $rowData['status']
-            );
+            $expectedStatus = $rowData[Product::COL_SKU] === self::NEW_SKU_WITH_STATUS_AND_URL ? 1 : 2;
+            $this->assertSame($expectedStatus, $rowData['status']);
         }
     }
 
@@ -192,7 +190,7 @@ class ImportDataPluginTest extends TestCase
             $this->createPartialMock(
                 Import::class,
                 [
-                    'isNewSimpleProductRowWithNoPrice',
+                    'isNewProductRowWithNoPrice',
                     'isImportTypeDisable',
                     'isNewSku',
                     'getUniqueProductUrl',
