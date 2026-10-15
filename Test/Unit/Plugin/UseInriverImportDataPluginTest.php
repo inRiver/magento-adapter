@@ -63,7 +63,7 @@ class UseInriverImportDataPluginTest extends TestCase
         $this->import =
             $this->getMockBuilder(Import::class)
                 ->disableOriginalConstructor()
-                ->setMethods(['getData'])
+                ->onlyMethods(['getData'])
                 ->getMock();
         $this->importData =
             $this->getMockBuilder(MagentoImportData::class)

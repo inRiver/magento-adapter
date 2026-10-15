@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace Inriver\Adapter\Test\Unit\Model\ImportExport;
 
+use Inriver\Adapter\Helper\Import as InriverImportHelper;
 use Inriver\Adapter\Model\Import\Product;
 use Inriver\Adapter\Model\ImportExport\Import;
 use Magento\CatalogImportExport\Model\Import\Product as MagentoProduct;
@@ -57,7 +58,11 @@ class ImportTest extends TestCase
 
     public function testIsImportTypeDisableWithInriverImport(): void
     {
-        $this->importConfig->method('getEntities')->willReturn([self::PRODUCT => ['model' => 'catalog']]);
+        $this->import->setData('entity', InriverImportHelper::INRIVER_ENTITY);
+        $this->importConfig->method('getEntities')->willReturn([
+            InriverImportHelper::INRIVER_ENTITY => ['model' => 'catalog'],
+            self::PRODUCT => ['model' => 'catalog'],
+        ]);
         $this->entityAdapterInriver->method('getEntityTypeCode')->willReturn(self::PRODUCT);
         $this->entityAdapterInriver->method('isImportTypeDisable')->willReturn(true);
         $this->entityFactory->method('create')->willReturn($this->entityAdapterInriver);

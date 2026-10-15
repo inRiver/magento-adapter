@@ -11,6 +11,13 @@
     <acl>
         <resources>
             <resource id="Magento_Backend::admin">
+                <resource id="Magento_Backend::stores">
+                    <resource id="Magento_Backend::stores_settings">
+                        <resource id="Magento_Config::config">
+                            <resource id="Inriver_Adapter::config" title="InRiver Configuration" translate="title" sortOrder="110"/>
+                        </resource>
+                    </resource>
+                </resource>
                 <resource id="Inriver_Adapter::all" title="InRiver Adapter" translate="title">
                     <resource id="Inriver_Adapter::read" title="Read" translate="title"/>
                     <resource id="Inriver_Adapter::write" title="Write" translate="title"/>

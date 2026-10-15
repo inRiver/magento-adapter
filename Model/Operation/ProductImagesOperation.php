@@ -30,6 +30,7 @@ use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Filesystem;
+use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use Throwable;
 
@@ -330,6 +331,7 @@ class ProductImagesOperation implements ImagesInterface
         $product = $this->productRepository->get($sku);
 
         $value = $this->mediaGalleryManagement->getMediaGalleryEntity((int) $entry->getId());
+        $singleStore = $this->storeManager->hasSingleStore();
 
         foreach ($newImage->getAttributes() as $storesAttributes) {
             $entry->setTypes($storesAttributes->getRoles());
@@ -352,8 +354,17 @@ class ProductImagesOperation implements ImagesInterface
                 $roles = array_flip($storesAttributes->getRoles());
 
                 if ($newlyAddedImage || !$this->imageTypesAreEqual($storeEntry->getTypes(), $storesAttributes->getRoles())) {
-                    $this->mediaGalleryManagement->updateImageTypes($roles, $value, $product, $storeId);
+                    $this->mediaGalleryManagement->updateImageTypes(
+                        $roles,
+                        $value,
+                        $product,
+                        $singleStore ? Store::DEFAULT_STORE_ID : $storeId
+                    );
                 }
+            }
+
+            if ($singleStore && $requiredStoreIds !== []) {
+                $requiredStoreIds[] = Store::DEFAULT_STORE_ID;
             }
 
             $existing = $this->mediaGalleryManagement->getExistingStoreEntries($product, $requiredStoreIds, $entry);

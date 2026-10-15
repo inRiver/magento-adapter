@@ -36,14 +36,15 @@ class CleanupCommand extends Command
     {
         $this->setName('inriver:adapter:cleanup')
             ->setDescription('cleanup old import files');
-        parent::configure();
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->cleanup->execute();
+
+        return Command::SUCCESS;
     }
 }

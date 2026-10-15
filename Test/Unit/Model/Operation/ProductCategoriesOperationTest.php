@@ -19,7 +19,7 @@ use Inriver\Adapter\Model\Data\ProductCategories\Category as DataCategory;
 use Inriver\Adapter\Model\Operation\ProductCategoriesOperation;
 use Magento\Catalog\Api\Data\CategoryLinkInterface;
 use Magento\Catalog\Api\Data\CategoryLinkInterfaceFactory;
-use Magento\Catalog\Api\Data\ProductExtension;
+use Magento\Catalog\Api\Data\ProductExtensionInterface;
 use Magento\Catalog\Api\ProductRepositoryInterfaceFactory;
 use Magento\Catalog\Model\Category;
 use Magento\Catalog\Model\CategoryLink;
@@ -34,6 +34,13 @@ use PHPUnit\Framework\TestCase;
 
 use function __;
 
+interface ProductCategoryLinksExtensionInterface extends ProductExtensionInterface
+{
+    public function getCategoryLinks();
+
+    public function setCategoryLinks($categoryLinks);
+}
+
 class ProductCategoriesOperationTest extends TestCase
 {
     private const AN_EXISTING_IMAGE_ID = 'an-existing-image-id';
@@ -47,7 +54,7 @@ class ProductCategoriesOperationTest extends TestCase
     /** @var \Magento\Catalog\Model\Product|\Inriver\Adapter\Test\Unit\Model\Operation\MockObject */
     private $product;
 
-    /** @var \Magento\Catalog\Api\Data\ProductExtension|\Inriver\Adapter\Test\Unit\Model\Operation\MockObject */
+    /** @var ProductCategoryLinksExtensionInterface|\PHPUnit\Framework\MockObject\MockObject */
     private $productExtention;
 
     /** @var array */
@@ -223,10 +230,7 @@ class ProductCategoriesOperationTest extends TestCase
         $this->categoryLinkInterfaceFactory = $this->createMock(CategoryLinkInterfaceFactory::class);
         $this->product = $this->createMock(Product::class);
         $this->productRepository = $this->createMock(ProductRepository::class);
-        $this->productExtention = $this->createPartialMock(
-            ProductExtension::class,
-            ['getCategoryLinks', 'setCategoryLinks']
-        );
+        $this->productExtention = $this->createMock(ProductCategoryLinksExtensionInterface::class);
         $this->stockRegistryStorage = $this->createMock(StockRegistryStorage::class);
         $this->logger = $this->createMock(Logger::class);
     }
@@ -293,12 +297,12 @@ class ProductCategoriesOperationTest extends TestCase
     private function setProductLinksForNewCatWrongCat(): void
     {
         $categoryLink1 = $this->createMock(CategoryLinkInterface::class);
-        $categoryLink1->expects($this->once())->method('getCategoryId')->willReturn(self::CAT_ID);
-        $categoryLink1->expects($this->once())->method('getPosition')->willReturn(self::POSITION);
+        $categoryLink1->expects($this->exactly(2))->method('getCategoryId')->willReturn(self::CAT_ID);
+        $categoryLink1->expects($this->never())->method('getPosition');
 
         $categoryLink2 = $this->createMock(CategoryLinkInterface::class);
-        $categoryLink2->expects($this->never())->method('getCategoryId')->willReturn(self::CAT_ID_OTHER);
-        $categoryLink2->expects($this->never())->method('getPosition')->willReturn(self::POSITION);
+        $categoryLink2->expects($this->once())->method('getCategoryId')->willReturn(self::CAT_ID_OTHER);
+        $categoryLink2->expects($this->never())->method('getPosition');
 
         $this->productCategoryLinks = [$categoryLink1, $categoryLink2];
         $this->productExtention->method('getCategoryLinks')
@@ -308,12 +312,12 @@ class ProductCategoriesOperationTest extends TestCase
     private function setProductLinksForAllSecondNullPosition(): void
     {
         $categoryLink1 = $this->createMock(CategoryLinkInterface::class);
-        $categoryLink1->expects($this->exactly(1))->method('getCategoryId')->willReturn(self::CAT_ID);
-        $categoryLink1->expects($this->never())->method('getPosition')->willReturn(self::POSITION);
+        $categoryLink1->expects($this->exactly(2))->method('getCategoryId')->willReturn(self::CAT_ID);
+        $categoryLink1->expects($this->never())->method('getPosition');
 
         $categoryLink2 = $this->createMock(CategoryLinkInterface::class);
-        $categoryLink2->expects($this->exactly(1))->method('getCategoryId')->willReturn(self::CAT_ID_OTHER);
-        $categoryLink2->expects($this->once())->method('getPosition')->willReturn(self::POSITION);
+        $categoryLink2->expects($this->once())->method('getCategoryId')->willReturn(self::CAT_ID_OTHER);
+        $categoryLink2->expects($this->never())->method('getPosition');
 
         $this->productCategoryLinks = [$categoryLink1, $categoryLink2];
         $this->productExtention->method('getCategoryLinks')

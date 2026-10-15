@@ -115,7 +115,10 @@ class InriverProductImportTypeAbstractPluginTest extends TestCase
         $inriverProductImportPlugin = new InriverProductImportTypeAbstractPlugin($this->inriverImportHelper);
         $this->inriverImportHelper->expects($this->never())->method('decodeImportAttributeValue');
         $this->productImportTypeAbstract->expects($this->never())->method('retrieveAttribute');
-        $valueToNotDecode = InriverImportHelper::ATTRIBUTES_NOT_TO_DECODE;
+        $valueToNotDecode = array_filter(
+            InriverImportHelper::ATTRIBUTES_NOT_TO_DECODE,
+            fn($attr) => $attr !== InriverImportHelper::COL_IS_INRIVER_IMPORT
+        );
         $attributeCode = array_pop($valueToNotDecode);
         $rowData = [$attributeCode => 'abc%25', Product::COL_ATTR_SET => 'attrSet', InriverImportHelper::COL_IS_INRIVER_IMPORT => true];
         $return = $inriverProductImportPlugin->beforePrepareAttributesWithDefaultValueForSave(

@@ -24,6 +24,7 @@ use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\DB\Select;
 use Magento\Framework\EntityManager\EntityMetadataInterface;
 use Magento\Framework\EntityManager\MetadataPool;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class MediaGalleryManagementTest extends TestCase
@@ -46,6 +47,10 @@ class MediaGalleryManagementTest extends TestCase
     /** @var \Magento\Catalog\Api\ProductAttributeMediaGalleryManagementInterface|\Inriver\Adapter\Test\Unit\Model\MediaGallery\MockObject */
     private $galleryManagement;
 
+    private $adapter;
+
+    private $metadata;
+
     public function testGetEntryValueById(): void
     {
         $subject = $this->getSubject();
@@ -54,14 +59,30 @@ class MediaGalleryManagementTest extends TestCase
         $this->assertEquals('string', $result);
     }
 
-    public function testInsertGalleryValueInStore(): void
+    #[DataProvider('linkFieldsProvider')]
+    public function testInsertGalleryValueInStore(string $linkField): void
     {
+        $this->metadata->method('getLinkField')->willReturn($linkField);
         $subject = $this->getSubject();
 
-        /** @var \Inriver\Adapter\Test\Unit\Model\MediaGallery\ProductInterface|\Inriver\Adapter\Test\Unit\Model\MediaGallery\MockObject $product */
         $product = $this->createMock(Product::class);
+        $product->expects($this->once())->method('getData')->with($linkField)->willReturn('42');
+        $this->resourceModel->expects($this->once())->method('insertGalleryValueInStore')->with([
+            'value_id' => 10,
+            'store_id' => 2,
+            'position' => 3,
+            $linkField => 42,
+        ]);
 
-        $subject->insertGalleryValueInStore(1, 1, 1, $product);
+        $subject->insertGalleryValueInStore(10, 2, 3, $product);
+    }
+
+    public static function linkFieldsProvider(): array
+    {
+        return [
+            'Magento Open Source' => ['entity_id'],
+            'Adobe Commerce staging' => ['row_id'],
+        ];
     }
 
     public function testGetStoreEntry(): void
@@ -100,6 +121,7 @@ class MediaGalleryManagementTest extends TestCase
 
     public function testGetAttributeIdsByFrontendType(): void
     {
+        $this->adapter->method('fetchAssoc')->willReturn([]);
         $subject = $this->getSubject();
         $result = $subject->getAttributeIdsByFrontendType('front-end-type');
 
@@ -110,17 +132,38 @@ class MediaGalleryManagementTest extends TestCase
     {
         $subject = $this->getSubject();
 
-        $types = ['type1', 'type2', 'type3'];
-
-        /** @var \Magento\Catalog\Model\Product|\Inriver\Adapter\Test\Unit\Model\MediaGallery\MockObject $product */
+        $types = ['image' => true, 'thumbnail' => true, 'unknown_attribute' => true];
+        $this->adapter->expects($this->once())->method('fetchAssoc')->willReturn([
+            'image' => ['attribute_id' => '85'],
+            'thumbnail' => ['attribute_id' => '86'],
+        ]);
         $product = $this->createMock(Product::class);
+        $product->method('getId')->willReturn(42);
+        $this->adapter->expects($this->once())->method('delete');
+        $this->action->expects($this->once())->method('updateAttributes')->with(
+            [42],
+            ['image' => 'the-value', 'thumbnail' => 'the-value'],
+            2
+        );
 
         $subject->updateImageTypes(
             $types,
             'the-value',
             $product,
-            0
+            2
         );
+    }
+
+    public function testUpdateImageTypesWithoutRecognizedTypes(): void
+    {
+        $this->adapter->method('fetchAssoc')->willReturn([]);
+        $subject = $this->getSubject();
+        $product = $this->createStub(Product::class);
+        $product->method('getId')->willReturn(42);
+        $this->adapter->expects($this->once())->method('delete');
+        $this->action->expects($this->once())->method('updateAttributes')->with([42], [], 2);
+
+        $subject->updateImageTypes(['unknown_attribute' => true], 'the-value', $product, 2);
     }
 
     public function testGetMediaGalleryEntity(): void
@@ -146,14 +189,28 @@ class MediaGalleryManagementTest extends TestCase
         $this->assertEquals([], $result);
     }
 
-    public function testDeleteExistingTypesForStore(): void
+    #[DataProvider('linkFieldsProvider')]
+    public function testDeleteExistingTypesForStore(string $linkField): void
     {
+        $this->metadata->method('getLinkField')->willReturn($linkField);
+        $this->adapter->method('fetchAssoc')->willReturn([]);
         $subject = $this->getSubject();
 
-        /** @var \Magento\Catalog\Model\Product|\Inriver\Adapter\Test\Unit\Model\MediaGallery\MockObject $product */
         $product = $this->createMock(Product::class);
+        $product->expects($this->once())->method('getData')->with($linkField)->willReturn(42);
+        $this->adapter->method('getTableName')->with('catalog_product_entity_varchar')
+            ->willReturn('prefix_catalog_product_entity_varchar');
+        $this->adapter->expects($this->once())->method('delete')->with(
+            'prefix_catalog_product_entity_varchar',
+            [
+                'attribute_id IN(?)' => [],
+                $linkField . ' = ?' => 42,
+                'store_id = ?' => 2,
+                'value = ?' => 'the-value',
+            ]
+        );
 
-        $subject->deleteExistingTypesForStore($product, 'the-value', 0);
+        $subject->deleteExistingTypesForStore($product, 'the-value', 2);
     }
 
     public function testGetList(): void
@@ -169,23 +226,34 @@ class MediaGalleryManagementTest extends TestCase
         $this->assertEquals($productAttributeMediaGalleryEntryList, $result);
     }
 
-    public function testDeleteGalleryValueInStore(): void
+    #[DataProvider('linkFieldsProvider')]
+    public function testDeleteGalleryValueInStore(string $linkField): void
     {
+        $this->metadata->method('getLinkField')->willReturn($linkField);
         $subject = $this->getSubject();
 
-        /** @var \Magento\Catalog\Model\Product|\Inriver\Adapter\Test\Unit\Model\MediaGallery\MockObject $product */
         $product = $this->createMock(Product::class);
+        $product->expects($this->once())->method('getData')->with($linkField)->willReturn('42');
 
-        /** @var \Magento\Catalog\Api\Data\ProductAttributeMediaGalleryEntryInterface|\Inriver\Adapter\Test\Unit\Model\MediaGallery\MockObject $entry */
-        $entry = $this->createMock(ProductAttributeMediaGalleryEntryInterface::class);
+        $entry = $this->createStub(ProductAttributeMediaGalleryEntryInterface::class);
+        $entry->method('getId')->willReturn(10);
+        $this->resourceModel->expects($this->once())->method('deleteGalleryValueInStore')->with(10, 42, 2);
 
-        $subject->deleteGalleryValueInStore($entry, $product, 0);
+        $subject->deleteGalleryValueInStore($entry, $product, 2);
     }
 
     public function testDeleteGallery(): void
     {
         $subject = $this->getSubject();
-        $subject->deleteGallery(0);
+        $this->resourceModel->expects($this->once())->method('deleteGallery')->with(10);
+        $subject->deleteGallery(10);
+    }
+
+    public function testDeleteGalleryWithNullId(): void
+    {
+        $subject = $this->getSubject();
+        $this->resourceModel->expects($this->once())->method('deleteGallery')->with(null);
+        $subject->deleteGallery(null);
     }
 
     public function testCreate(): void
@@ -214,9 +282,10 @@ class MediaGalleryManagementTest extends TestCase
         $this->resourceModel = $this->createMock(Gallery::class);
         $this->galleryManagement = $this->createMock(ProductAttributeMediaGalleryManagementInterface::class);
 
+        $this->metadata = $this->createStub(EntityMetadataInterface::class);
         $this->metadataPool
-             ->method('getMetadata')
-             ->willReturn($this->createMock(EntityMetadataInterface::class));
+            ->method('getMetadata')
+            ->willReturn($this->metadata);
 
         $select = $this->createMock(Select::class);
         $select->method('from')->willReturnSelf();
@@ -226,8 +295,8 @@ class MediaGalleryManagementTest extends TestCase
         $adapter = $this->createMock(AdapterInterface::class);
         $adapter->method('select')->willReturn($select);
         $adapter->method('fetchOne')->willReturn('string');
-        $adapter->method('fetchAssoc')->willReturn([]);
         $adapter->method('fetchCol')->willReturn([]);
+        $this->adapter = $adapter;
 
         $this->resourceConnection->method('getConnection')->willReturn($adapter);
     }

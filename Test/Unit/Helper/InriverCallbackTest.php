@@ -25,6 +25,7 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Bulk\OperationInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\Serializer\Json;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class InriverCallbackTest extends TestCase
@@ -107,8 +108,8 @@ class InriverCallbackTest extends TestCase
      * @throws \Magento\Framework\Exception\CouldNotSaveException
      * @throws \Magento\Framework\Exception\LocalizedException
      *
-     * @dataProvider testScenarios
      */
+    #[DataProvider('callbackScenarios')]
     public function testCreateCallbackId(
         ?int $errorCode,
         int $status,
@@ -186,7 +187,7 @@ class InriverCallbackTest extends TestCase
     /**
      * @return string[]
      */
-    public function testScenarios(): array
+    public static function callbackScenarios(): array
     {
         return [
             [

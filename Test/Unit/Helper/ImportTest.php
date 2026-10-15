@@ -17,6 +17,7 @@ use Magento\Catalog\Model\Product\Url;
 use Magento\CatalogImportExport\Model\Import\Product;
 use Magento\CatalogImportExport\Model\Import\Product\SkuProcessor;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class ImportTest extends TestCase
@@ -38,8 +39,8 @@ class ImportTest extends TestCase
      * @param string[] $rowData
      * @param bool $expected
      *
-     * @dataProvider attributeProviderNewProduct
      */
+    #[DataProvider('attributeProviderNewProduct')]
     public function testIsNewSimpleProduct(array $rowData, bool $expected): void
     {
         $validationHelper = new Import($this->skuProcessor, $this->productUrl);
@@ -50,8 +51,8 @@ class ImportTest extends TestCase
      * @param string[] $rowData
      * @param bool $expected
      *
-     * @dataProvider attributeProviderDisable
      */
+    #[DataProvider('attributeProviderDisable')]
     public function testIsImportTypeDisable(array $rowData, bool $expected): void
     {
         $validationHelper = new Import($this->skuProcessor, $this->productUrl);
@@ -62,8 +63,8 @@ class ImportTest extends TestCase
      * @param string[] $rowData
      * @param string $expected
      *
-     * @dataProvider attributeProviderProductUrl
      */
+    #[DataProvider('attributeProviderProductUrl')]
     public function testGetUniqueProductUrl(array $rowData, string $expected): void
     {
         $validationHelper = new Import($this->skuProcessor, $this->productUrl);
@@ -74,8 +75,8 @@ class ImportTest extends TestCase
      * @param string $attributeValue
      * @param string $expected
      *
-     * @dataProvider attributeValueProvider
      */
+    #[DataProvider('attributeValueProvider')]
     public function testDecodeImportAttributeValue(string $attributeValue, string $expected): void
     {
         $validationHelper = new Import($this->skuProcessor, $this->productUrl);
@@ -85,7 +86,7 @@ class ImportTest extends TestCase
     /**
      * @return string[]
      */
-    public function attributeProviderNewProduct(): array
+    public static function attributeProviderNewProduct(): array
     {
         return [
             [
@@ -157,7 +158,7 @@ class ImportTest extends TestCase
     /**
      * @return string[]
      */
-    public function attributeProviderDisable(): array
+    public static function attributeProviderDisable(): array
     {
         return [
             [
@@ -204,7 +205,7 @@ class ImportTest extends TestCase
     /**
      * @return string[]
      */
-    public function attributeProviderProductUrl(): array
+    public static function attributeProviderProductUrl(): array
     {
         return [
             [
@@ -246,7 +247,7 @@ class ImportTest extends TestCase
     /**
      * @return string[]
      */
-    public function attributeValueProvider(): array
+    public static function attributeValueProvider(): array
     {
         return [
             [

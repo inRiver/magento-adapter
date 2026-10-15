@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace Inriver\Adapter\Helper;
 
+use Exception;
 use Magento\Framework\Filesystem\Driver\File as FileDriver;
 
 //phpcs:ignore Magento2.Exceptions.TryProcessSystemResources.MissingTryCatch
