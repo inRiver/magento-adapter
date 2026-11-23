@@ -9,7 +9,7 @@ use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Framework\Console\Cli;
 use Magento\Store\Model\StoreManagerInterface;
 
-require '/app/app/bootstrap.php';
+require getcwd() . '/app/bootstrap.php';
 
 class ImageTraceMediaGalleryManagement extends MediaGalleryManagement
 {
@@ -53,4 +53,4 @@ class ImageTraceMediaGalleryManagement extends MediaGalleryManagement
 $application = new Cli('Magento CLI');
 $manager = \Magento\Framework\App\ObjectManager::getInstance();
 $manager->configure(['preferences' => [MediaGalleryManagement::class => ImageTraceMediaGalleryManagement::class]]);
-exit($application->run());
+$application->run();
