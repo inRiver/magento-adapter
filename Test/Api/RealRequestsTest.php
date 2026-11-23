@@ -29,6 +29,7 @@ use Magento\Integration\Model\CustomUserContext;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Store\Model\Store;
 use Magento\User\Model\User;
+use Magento\User\Model\ResourceModel\User as UserResource;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Process\Process;
@@ -36,6 +37,8 @@ use Symfony\Component\Process\Process;
 class RealRequestsTest extends TestCase
 {
     private static ObjectManagerInterface $objectManager;
+
+    private static string $magentoRoot;
 
     private static ?User $testAdmin = null;
 
@@ -72,7 +75,7 @@ class RealRequestsTest extends TestCase
             }
             $importPath = self::$objectManager->get(ScopeConfigInterface::class)
                 ->getValue(ImportInterface::XML_INRIVER_IMPORT_PATH_CSV);
-            foreach (glob(BP . '/var/' . ltrim((string) $importPath, '/') . '/archives/*/import-*.csv') ?: [] as $archive) {
+            foreach (glob(self::$magentoRoot . '/var/' . ltrim((string) $importPath, '/') . '/archives/*/import-*.csv') ?: [] as $archive) {
                 $contents = file_get_contents($archive);
                 foreach ($this->fixtureSkus as $sku) {
                     if ($contents !== false && str_contains($contents, $sku)) {
@@ -155,8 +158,8 @@ class RealRequestsTest extends TestCase
     {
         $this->requireEmptyQueue();
         $suffix = bin2hex(random_bytes(6));
-        $capture = BP . '/var/inriver-api-test-' . $suffix . '.jsonl';
-        $statusFile = BP . '/var/inriver-api-test-' . $suffix . '.status';
+        $capture = self::$magentoRoot . '/var/inriver-api-test-' . $suffix . '.jsonl';
+        $statusFile = self::$magentoRoot . '/var/inriver-api-test-' . $suffix . '.status';
         $this->fixturePaths[] = $capture;
         $this->fixturePaths[] = $statusFile;
         file_put_contents($statusFile, (string) $statusCode);
@@ -169,7 +172,7 @@ class RealRequestsTest extends TestCase
         $port = (int) substr($address, strrpos($address, ':') + 1);
         $server = new Process([
             PHP_BINARY, '-S', '0.0.0.0:' . $port, __DIR__ . '/Fixtures/CallbackRouter.php',
-        ], BP, ['INRIVER_TEST_CALLBACK_CAPTURE' => $capture, 'INRIVER_TEST_CALLBACK_STATUS' => $statusFile], null, 60);
+        ], self::$magentoRoot, ['INRIVER_TEST_CALLBACK_CAPTURE' => $capture, 'INRIVER_TEST_CALLBACK_STATUS' => $statusFile], null, 60);
         $resource = self::$objectManager->get(ResourceConnection::class);
         $connection = $resource->getConnection();
         $configPath = 'inriver/import/inriver_api_key';
@@ -247,13 +250,13 @@ class RealRequestsTest extends TestCase
         $this->assertSame(!$additionalStore, $storeManager->hasSingleStore(), 'This regression test requires one initial storefront.');
         $storeCode = $storeManager->getDefaultStoreView()->getCode();
         if (getenv('INRIVER_IMAGE_TRACE') === '1') {
-            $this->imageTracePath = BP . '/var/inriver-api-test-image-trace-' . $suffix . '.jsonl';
+            $this->imageTracePath = self::$magentoRoot . '/var/inriver-api-test-image-trace-' . $suffix . '.jsonl';
             $this->fixturePaths[] = $this->imageTracePath;
         }
         $sku = 'inriver-api-image-' . $suffix;
         $this->createProductFixture($sku);
         $filename = 'inriver-api-test-' . $suffix . '.jpg';
-        $source = BP . '/pub/' . $filename;
+        $source = self::$magentoRoot . '/pub/' . $filename;
         $this->fixturePaths[] = $source;
         $image = imagecreatetruecolor(32, 16);
         imagefill($image, 0, 0, imagecolorallocate($image, 36, 120, 150));
@@ -282,9 +285,9 @@ class RealRequestsTest extends TestCase
             $entries = $product['media_gallery_entries'];
             $this->assertCount(1, $entries);
             $entry = $entries[0];
-            $savedPath = BP . '/pub/media/catalog/product' . $entry['file'];
+            $savedPath = self::$magentoRoot . '/pub/media/catalog/product' . $entry['file'];
             $this->fixturePaths[] = $savedPath;
-            $this->fixturePaths[] = BP . '/pub/media/tmp/catalog/product' . $entry['file'];
+            $this->fixturePaths[] = self::$magentoRoot . '/pub/media/tmp/catalog/product' . $entry['file'];
             if ($entryId !== null) {
                 $this->assertSame($entryId, (int) $entry['id']);
             }
@@ -376,7 +379,8 @@ class RealRequestsTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        self::$objectManager = Bootstrap::create(BP, $_SERVER)->getObjectManager();
+        self::$magentoRoot = constant('BP');
+        self::$objectManager = Bootstrap::create(self::$magentoRoot, $_SERVER)->getObjectManager();
         self::$objectManager->get(State::class)->setAreaCode('adminhtml');
         $admin = self::$objectManager->create(User::class);
         $admin->loadByUsername(getenv('MAGENTO_ADMIN_USER') ?: 'admin');
@@ -394,7 +398,8 @@ class RealRequestsTest extends TestCase
                 'email' => 'inriver-api-' . $suffix . '@example.invalid',
                 'password' => 'Aa9_' . bin2hex(random_bytes(20)),
                 'is_active' => 1,
-            ])->setRoleId($admin->getRole()->getId())->save();
+            ])->setRoleId($admin->getRole()->getId());
+            self::$objectManager->get(UserResource::class)->save(self::$testAdmin);
             self::$token = self::$objectManager->get(UserTokenIssuerInterface::class)->create(
                 new CustomUserContext((int) self::$testAdmin->getId(), UserContextInterface::USER_TYPE_ADMIN),
                 self::$objectManager->create(UserTokenParametersInterface::class)
@@ -413,7 +418,7 @@ class RealRequestsTest extends TestCase
                     new CustomUserContext((int) self::$testAdmin->getId(), UserContextInterface::USER_TYPE_ADMIN)
                 );
             } finally {
-                self::$testAdmin->delete();
+                self::$objectManager->get(UserResource::class)->delete(self::$testAdmin);
             }
         }
     }
@@ -507,10 +512,10 @@ class RealRequestsTest extends TestCase
         $suffix = bin2hex(random_bytes(6));
         $sku = 'inriver-api-csv-' . $suffix;
         $filename = 'inriver-api-test-' . $suffix . '.csv';
-        $path = BP . '/pub/' . $filename;
+        $path = self::$magentoRoot . '/pub/' . $filename;
         $importPath = self::$objectManager->get(ScopeConfigInterface::class)
             ->getValue(ImportInterface::XML_INRIVER_IMPORT_PATH_CSV);
-        $archiveRoot = BP . '/var/' . ltrim((string) $importPath, '/');
+        $archiveRoot = self::$magentoRoot . '/var/' . ltrim((string) $importPath, '/');
         $archivesBefore = glob($archiveRoot . '/archives/*/import-*.csv') ?: [];
         $productCreated = false;
         try {
@@ -733,7 +738,7 @@ class RealRequestsTest extends TestCase
     private function createCsvFixture(array $columns, array $rows): string
     {
         $filename = 'inriver-api-test-' . bin2hex(random_bytes(6)) . '.csv';
-        $path = BP . '/pub/' . $filename;
+        $path = self::$magentoRoot . '/pub/' . $filename;
         $stream = fopen($path, 'xb');
         if ($stream === false) {
             throw new \RuntimeException('Cannot create the local CSV fixture.');
@@ -791,7 +796,7 @@ class RealRequestsTest extends TestCase
             PHP_BINARY, '-d', 'openssl.cafile=/opt/tls/local.crt',
             $this->imageTracePath === null ? 'bin/magento' : __DIR__ . '/Fixtures/ImageTraceConsumer.php',
             'queue:consumers:start', 'async.operations.all', '--max-messages=1',
-        ], BP, $this->imageTracePath === null ? null : ['INRIVER_IMAGE_TRACE_FILE' => $this->imageTracePath], null, 60);
+        ], self::$magentoRoot, $this->imageTracePath === null ? null : ['INRIVER_IMAGE_TRACE_FILE' => $this->imageTracePath], null, 60);
         $process->mustRun();
         $status = $this->request('GET', '/rest/all/V1/bulk/' . rawurlencode($uuid) . '/detailed-status');
         $this->assertCount(1, $status['operations_list']);

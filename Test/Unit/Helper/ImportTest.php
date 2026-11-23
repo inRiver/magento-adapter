@@ -39,6 +39,7 @@ class ImportTest extends TestCase
      * @param string[] $rowData
      * @param bool $expected
      *
+     * @dataProvider attributeProviderNewProduct
      */
     #[DataProvider('attributeProviderNewProduct')]
     public function testIsNewSimpleProduct(array $rowData, bool $expected): void
@@ -51,6 +52,7 @@ class ImportTest extends TestCase
      * @param string[] $rowData
      * @param bool $expected
      *
+     * @dataProvider attributeProviderDisable
      */
     #[DataProvider('attributeProviderDisable')]
     public function testIsImportTypeDisable(array $rowData, bool $expected): void
@@ -63,6 +65,7 @@ class ImportTest extends TestCase
      * @param string[] $rowData
      * @param string $expected
      *
+     * @dataProvider attributeProviderProductUrl
      */
     #[DataProvider('attributeProviderProductUrl')]
     public function testGetUniqueProductUrl(array $rowData, string $expected): void
@@ -75,6 +78,7 @@ class ImportTest extends TestCase
      * @param string $attributeValue
      * @param string $expected
      *
+     * @dataProvider attributeValueProvider
      */
     #[DataProvider('attributeValueProvider')]
     public function testDecodeImportAttributeValue(string $attributeValue, string $expected): void

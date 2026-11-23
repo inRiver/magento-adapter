@@ -18,7 +18,6 @@ use Magento\CatalogImportExport\Model\Import\Product\Type\Simple;
 use Magento\CatalogImportExport\Model\Import\Product\Type\Virtual;
 use Magento\ConfigurableImportExport\Model\Import\Product\Type\Configurable;
 use Magento\DownloadableImportExport\Model\Import\Product\Type\Downloadable;
-use Magento\GiftCardImportExport\Model\Import\Product\Type\GiftCard;
 use Magento\GroupedImportExport\Model\Import\Product\Type\Grouped;
 use Magento\ImportExport\Model\Import\Config;
 use PHPUnit\Framework\TestCase;
@@ -46,10 +45,6 @@ class InriverImportConfigPluginTest extends TestCase
             'configurable' => [
                 'name' => 'configurable',
                 'model' => Configurable::class,
-            ],
-            'giftcard' => [
-                'name' => 'giftcard',
-                'model' => GiftCard::class,
             ],
             'grouped' => [
                 'name' => 'grouped',
@@ -89,10 +84,6 @@ class InriverImportConfigPluginTest extends TestCase
                 'name' => 'configurable',
                 'model' => Configurable::class,
             ],
-            'giftcard' => [
-                'name' => 'giftcard',
-                'model' => GiftCard::class,
-            ],
             'grouped' => [
                 'name' => 'grouped',
                 'model' => Grouped::class,
@@ -130,10 +121,6 @@ class InriverImportConfigPluginTest extends TestCase
             'configurable' => [
                 'name' => 'configurable',
                 'model' => Configurable::class,
-            ],
-            'giftcard' => [
-                'name' => 'giftcard',
-                'model' => GiftCard::class,
             ],
             'grouped' => [
                 'name' => 'grouped',

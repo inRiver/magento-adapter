@@ -59,6 +59,9 @@ class MediaGalleryManagementTest extends TestCase
         $this->assertEquals('string', $result);
     }
 
+    /**
+     * @dataProvider linkFieldsProvider
+     */
     #[DataProvider('linkFieldsProvider')]
     public function testInsertGalleryValueInStore(string $linkField): void
     {
@@ -189,6 +192,9 @@ class MediaGalleryManagementTest extends TestCase
         $this->assertEquals([], $result);
     }
 
+    /**
+     * @dataProvider linkFieldsProvider
+     */
     #[DataProvider('linkFieldsProvider')]
     public function testDeleteExistingTypesForStore(string $linkField): void
     {
@@ -226,6 +232,9 @@ class MediaGalleryManagementTest extends TestCase
         $this->assertEquals($productAttributeMediaGalleryEntryList, $result);
     }
 
+    /**
+     * @dataProvider linkFieldsProvider
+     */
     #[DataProvider('linkFieldsProvider')]
     public function testDeleteGalleryValueInStore(string $linkField): void
     {
