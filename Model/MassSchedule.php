@@ -137,6 +137,7 @@ class MassSchedule extends \Magento\AsynchronousOperations\Model\MassSchedule
             /** @var \Magento\AsynchronousOperations\Api\Data\ItemStatusInterface $requestItem */
             $requestItem = $this->itemStatusInterfaceFactory->create();
 
+            $operation = null;
             try {
                 $operation = $this->operationRepository->createByTopic($topicName, $entityParams, $groupId);
                 $operations[] = $operation;
@@ -152,8 +153,9 @@ class MassSchedule extends \Magento\AsynchronousOperations\Model\MassSchedule
             } catch (Exception $exception) {
                 $this->logger->error($exception);
                 // InRiver custom code start
-                /** @var \Magento\AsynchronousOperations\Api\Data\OperationInterface $operation */
-                $requestItem->setId($operation->getId());
+                if ($operation !== null) {
+                    $requestItem->setId($operation->getId());
+                }
                 // InRiver custom code end
                 $requestItem->setStatus(ItemStatusInterface::STATUS_REJECTED);
                 $requestItem->setErrorMessage($exception);
