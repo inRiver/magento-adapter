@@ -108,6 +108,7 @@ class InriverCallbackTest extends TestCase
      * @throws \Magento\Framework\Exception\CouldNotSaveException
      * @throws \Magento\Framework\Exception\LocalizedException
      *
+     * @dataProvider callbackScenarios
      */
     #[DataProvider('callbackScenarios')]
     public function testCreateCallbackId(

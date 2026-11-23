@@ -90,6 +90,9 @@ class CsvImportByUrlOperationTest extends TestCase
         $csvImportByUrlOperation->post($this->message);
     }
 
+    /**
+     * @dataProvider importRequestsProvider
+     */
     #[DataProvider('importRequestsProvider')]
     public function testProcess(string $importPath, ?array $websiteIds, bool $hasErrors): void
     {

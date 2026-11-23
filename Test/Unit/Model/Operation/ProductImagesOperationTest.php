@@ -139,6 +139,9 @@ class ProductImagesOperationTest extends TestCase
         $subject->post($productImages);
     }
 
+    /**
+     * @dataProvider imageRoleStoreScopesProvider
+     */
     #[DataProvider('imageRoleStoreScopesProvider')]
     public function testUpdateExistingEntriesWithoutExistingStoreConfiguration(
         bool $singleStore,

@@ -85,6 +85,9 @@ class ImportTest extends TestCase
         $this->assertFalse($import->execute('NON_EXISTING_FILENAME'));
     }
 
+    /**
+     * @dataProvider validationFailuresProvider
+     */
     #[DataProvider('validationFailuresProvider')]
     public function testFileValidationFailed(?string $exceptionType): void
     {
@@ -141,6 +144,9 @@ class ImportTest extends TestCase
         $this->assertSame([], $this->createConfiguredImport()->getErrors());
     }
 
+    /**
+     * @dataProvider importOutcomesProvider
+     */
     #[DataProvider('importOutcomesProvider')]
     public function testExecuteArchivesFileAndDispatchesEvents(bool $result, bool $hasErrors): void
     {
@@ -178,6 +184,9 @@ class ImportTest extends TestCase
         ];
     }
 
+    /**
+     * @dataProvider importExceptionsProvider
+     */
     #[DataProvider('importExceptionsProvider')]
     public function testExecuteHandlesImportExceptions(string $exceptionType): void
     {
@@ -210,6 +219,9 @@ class ImportTest extends TestCase
         ];
     }
 
+    /**
+     * @dataProvider disableImportProvider
+     */
     #[DataProvider('disableImportProvider')]
     public function testGetErrorsAsArrayGroupsRowsAndFiltersDisabledProductType(bool $disableImport): void
     {
