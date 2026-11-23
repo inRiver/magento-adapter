@@ -111,9 +111,9 @@ class FileDownloader
         $attempts = 1;
         $retryAfter = (int) $this->getAttemptSleep();
         $maxAttempt = (int) $this->getMaxAttempt();
-        do {
+        while (true) {
             try {
-                $written = $this->directory->writeFile(
+                return $this->directory->writeFile(
                     $destination,
                     $this->readFactory->create($normalizedUrl, $driver)->readAll()
                 );
@@ -133,10 +133,7 @@ class FileDownloader
                     ErrorCodesDirectory::CANNOT_DOWNLOAD_CSV_FILE
                 );
             }
-            break;
-        } while ($attempts <= $maxAttempt);
-
-        return $written;
+        }
     }
 
     /**
