@@ -10,12 +10,10 @@ declare(strict_types=1);
 
 namespace Inriver\Adapter\Logger;
 
-use Magento\Framework\Logger\Monolog;
-
 /**
  * Class Logger
  * Specific logging class for this module
  */
-class Logger extends Monolog
+class Logger extends \Monolog\Logger
 {
 }
